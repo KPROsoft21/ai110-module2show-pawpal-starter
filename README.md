@@ -2,7 +2,8 @@
 
 ## 📸 Demo
 
-<a href="/course_images/ai110/demo_screenshot.png" target="_blank"><img src='/course_images/ai110/demo_screenshot.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>
+<img width="960" height="1400" alt="demo_screenshot" src="https://github.com/user-attachments/assets/5678bdf0-bddf-4f51-bb4b-b0408f204435" />
+
 
 
 
