@@ -4,86 +4,27 @@
 
 **a. Initial design**
 
-**Three core user actions:**
+The initial design uses four classes arranged in a simple hierarchy: `Owner` has a `Pet`, the `Pet` owns a collection of `Task` objects, and a `Scheduler` reads from both `Owner` and `Pet` to produce the daily plan.
 
-1. **Enter owner and pet information.** The user provides basic details about themselves and their pet — such as the pet's name and type, and how much time the owner has available in a day. This context allows the system to personalize the daily plan and respect real-world constraints.
+- **`Task`** — represents one pet care activity. It holds the title, duration in minutes, priority level (low/medium/high), category (walk/feeding/medication/grooming/enrichment), and a completed flag. Its responsibility is purely to describe a unit of work; it has no scheduling logic.
 
-2. **Add and manage care tasks.** The user creates tasks representing things their pet needs (walks, feeding, medication, grooming, enrichment, etc.). Each task has at minimum a duration and a priority level. The user can also edit or remove tasks as the pet's needs change.
+- **`Pet`** — represents the animal being cared for. It holds the pet's name and species, and owns the list of tasks. It is responsible for managing that list (adding, removing, and sorting tasks by priority) so that nothing outside the class needs to manipulate the list directly.
 
-3. **Generate and view the daily schedule.** The user requests a daily plan. The system takes the task list and owner constraints, selects and orders tasks that fit within the available time (prioritizing higher-priority tasks), and displays the resulting schedule along with an explanation of why specific tasks were included or excluded.
+- **`Owner`** — holds context about the person providing care: their name, how many minutes they have available today, and any preferences (such as preferred walk time). Its responsibility is to be the single source of the time budget that the scheduler will respect.
 
-- Briefly describe your initial UML design.
-- What classes did you include, and what responsibilities did you assign to each?
-
-**Object brainstorm:**
-
-**`Task`** — represents a single pet care activity
-- Attributes: `title` (str), `duration_minutes` (int), `priority` (str: low/medium/high), `category` (str: walk/feeding/medication/grooming/enrichment), `completed` (bool)
-- Methods: `is_high_priority()` → returns True if priority is "high"; `to_dict()` → returns a dictionary representation for display or storage
-
-**`Pet`** — represents the animal being cared for
-- Attributes: `name` (str), `species` (str), `tasks` (list of Task)
-- Methods: `add_task(task)` → adds a Task to the list; `remove_task(title)` → removes a task by name; `get_tasks_by_priority()` → returns the task list sorted from high to low priority
-
-**`Scheduler`** — the core planning engine that builds the daily schedule
-- Attributes: `pet` (Pet), `available_minutes` (int), `scheduled_tasks` (list of Task), `skipped_tasks` (list of Task)
-- Methods: `build_plan()` → selects and orders tasks that fit within available time, prioritizing higher-priority items; `explain_plan()` → returns a human-readable string explaining which tasks were included and why others were skipped; `total_scheduled_time()` → returns the sum of durations of all scheduled tasks
-
-**`Owner`** — holds context about the person providing care
-- Attributes: `name` (str), `available_minutes` (int), `preferences` (dict, e.g. preferred walk time)
-- Methods: `set_availability(minutes)` → updates how much time the owner has in a day
-
-The `Scheduler` depends on both `Owner` (for the time constraint) and `Pet` (for the task list). `Pet` owns a collection of `Task` objects.
-
-**UML Class Diagram:**
-
-```mermaid
-classDiagram
-    class Owner {
-        +String name
-        +int available_minutes
-        +dict preferences
-        +set_availability(minutes)
-    }
-
-    class Pet {
-        +String name
-        +String species
-        +List~Task~ tasks
-        +add_task(task)
-        +remove_task(title)
-        +get_tasks_by_priority() List~Task~
-    }
-
-    class Task {
-        +String title
-        +int duration_minutes
-        +String priority
-        +String category
-        +bool completed
-        +is_high_priority() bool
-        +to_dict() dict
-    }
-
-    class Scheduler {
-        +int available_minutes
-        +List~Task~ scheduled_tasks
-        +List~Task~ skipped_tasks
-        +build_plan() List~Task~
-        +explain_plan() String
-        +total_scheduled_time() int
-    }
-
-    Owner "1" --> "1" Pet : owns
-    Pet "1" *-- "many" Task : contains
-    Scheduler --> Pet : reads tasks from
-    Scheduler --> Owner : gets time budget from
-```
+- **`Scheduler`** — the core planning engine. It takes a `Pet` and an `Owner`, reads the task list and the available time, and produces a prioritized daily schedule. It is responsible for deciding which tasks fit, in what order, and for generating a plain-language explanation of those decisions.
 
 **b. Design changes**
 
-- Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
+Yes, four changes were made during implementation:
+
+1. **`Scheduler` stores a reference to `Owner` instead of copying `available_minutes`.** The original skeleton did `self.available_minutes = owner.available_minutes`, which snapshots the value at construction time. If `Owner.set_availability()` is called later — for example, when the user updates their schedule in the UI — the `Scheduler` would silently use a stale budget. Storing `self.owner = owner` and reading `self.owner.available_minutes` inside `build_plan()` ensures the scheduler always uses the current value.
+
+2. **`build_plan()` resets `scheduled_tasks` and `skipped_tasks` at the start of each call.** Because these lists are initialized in `__init__`, calling `build_plan()` more than once would append to them rather than replace them, producing doubled or corrupted results. Resetting them at the top of the method makes each call produce a clean, independent plan.
+
+3. **Added a `PRIORITY_ORDER` module-level constant** (`{"high": 3, "medium": 2, "low": 1}`). The `get_tasks_by_priority()` method on `Pet` and any sorting inside `Scheduler` both need to rank priority levels numerically. Without a shared constant, both places would need the same magic strings independently, which is fragile. A single constant at the top of the file gives both classes one place to reference.
+
+4. **`Owner` was expanded to manage multiple pets, and `Scheduler` was updated to work across all of them.** The original UML modelled a one-to-one relationship between Owner and Pet, but the real scenario calls for managing all of a household's pets together. `Owner` now holds a `pets` list with `add_pet()` and `remove_pet()` methods, plus `get_all_tasks()` which flattens every pet's tasks into a single list of `(pet_name, task)` pairs. `Scheduler` was simplified to take only an `Owner` (instead of a separate `Pet` and `Owner`), and `build_plan()` now sorts and schedules tasks globally across all pets by priority.
 
 ---
 
