@@ -32,6 +32,15 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## Smarter Scheduling
+
+The `Scheduler` class goes beyond a simple task list with four additional capabilities:
+
+- **Sort by time** — `sort_by_time()` orders the scheduled plan by each task's `start_time` (HH:MM), so the output reads like a real daily timeline. Tasks with no assigned time appear at the end.
+- **Filter tasks** — `filter_tasks(pet_name, completed)` lets you slice the full task list by pet, by completion status, or both. Pass `None` to skip either filter.
+- **Recurring tasks** — Tasks can be set to `frequency="daily"` or `frequency="weekly"`. When `complete_task()` is called, it marks the current occurrence done and automatically adds the next occurrence (calculated with `timedelta`) to the pet's task list.
+- **Conflict detection** — `find_conflicts()` checks every pair of scheduled tasks with a `start_time` and returns any whose time windows overlap. It uses `itertools.combinations` to test all pairs and the standard interval-overlap test (`start_a < end_b AND start_b < end_a`). Conflicts are reported as warnings — the scheduler never crashes.
+
 ### Suggested workflow
 
 1. Read the scenario carefully and identify requirements and edge cases.

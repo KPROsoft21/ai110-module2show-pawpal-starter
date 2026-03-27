@@ -32,13 +32,17 @@ Yes, four changes were made during implementation:
 
 **a. Constraints and priorities**
 
-- What constraints does your scheduler consider (for example: time, priority, preferences)?
-- How did you decide which constraints mattered most?
+The scheduler considers two constraints: **available time** (the owner's daily minute budget) and **task priority** (high / medium / low). Priority determines the order tasks are evaluated; available time determines whether each task fits.
+
+Time was chosen as the hard constraint because it is a real physical limit — you cannot schedule more minutes than exist in a day. Priority was chosen as the ranking signal because the owner already assigns it when creating a task, so it directly encodes their intent without requiring the scheduler to infer importance.
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-- Why is that tradeoff reasonable for this scenario?
+The scheduler uses a **greedy priority-first algorithm**: it sorts all tasks from high to low priority and fills the time budget one task at a time, skipping any task whose duration exceeds the remaining minutes. It never backtracks.
+
+This means a large high-priority task can consume most of the budget and cause several smaller medium-priority tasks to be skipped, even though those smaller tasks would have fit together in the same time slot if the large task had been placed differently. A more optimal approach — such as a knapsack algorithm — would consider all combinations and find the selection that maximises total value within the budget, but it is significantly more complex to implement and explain.
+
+The greedy approach is a reasonable tradeoff here because: pet care tasks are rarely interchangeable (a walk is not a substitute for medication), the priority field already encodes the owner's intent about what matters most, and for the small task lists typical in a household app the greedy result is usually good enough. Optimality matters more when tasks are fungible and budgets are tight — neither is consistently true in this scenario.
 
 ---
 
