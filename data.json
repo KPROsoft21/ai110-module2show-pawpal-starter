@@ -1,0 +1,119 @@
+{
+  "name": "Jordan",
+  "available_minutes": 120,
+  "preferences": {},
+  "pets": [
+    {
+      "name": "Mochi",
+      "species": "dog",
+      "tasks": [
+        {
+          "title": "Evening walk",
+          "duration_minutes": 30,
+          "priority": "medium",
+          "category": "walk",
+          "completed": false,
+          "start_time": "18:00",
+          "frequency": "daily",
+          "due_date": "2026-03-27"
+        },
+        {
+          "title": "Breakfast",
+          "duration_minutes": 10,
+          "priority": "high",
+          "category": "feeding",
+          "completed": true,
+          "start_time": "07:30",
+          "frequency": "daily",
+          "due_date": "2026-03-27"
+        },
+        {
+          "title": "Flea medication",
+          "duration_minutes": 5,
+          "priority": "high",
+          "category": "medication",
+          "completed": false,
+          "start_time": "08:00",
+          "frequency": "weekly",
+          "due_date": "2026-03-27"
+        },
+        {
+          "title": "Fetch session",
+          "duration_minutes": 20,
+          "priority": "low",
+          "category": "enrichment",
+          "completed": false,
+          "start_time": "16:00",
+          "frequency": "once",
+          "due_date": null
+        },
+        {
+          "title": "Grooming",
+          "duration_minutes": 15,
+          "priority": "medium",
+          "category": "grooming",
+          "completed": false,
+          "start_time": "08:00",
+          "frequency": "once",
+          "due_date": null
+        },
+        {
+          "title": "Breakfast",
+          "duration_minutes": 10,
+          "priority": "high",
+          "category": "feeding",
+          "completed": false,
+          "start_time": null,
+          "frequency": "daily",
+          "due_date": "2026-03-28"
+        }
+      ]
+    },
+    {
+      "name": "Luna",
+      "species": "cat",
+      "tasks": [
+        {
+          "title": "Breakfast",
+          "duration_minutes": 5,
+          "priority": "high",
+          "category": "feeding",
+          "completed": false,
+          "start_time": "07:45",
+          "frequency": "daily",
+          "due_date": "2026-03-27"
+        },
+        {
+          "title": "Litter box clean",
+          "duration_minutes": 10,
+          "priority": "medium",
+          "category": "grooming",
+          "completed": false,
+          "start_time": "09:00",
+          "frequency": "once",
+          "due_date": null
+        },
+        {
+          "title": "Laser play",
+          "duration_minutes": 15,
+          "priority": "low",
+          "category": "enrichment",
+          "completed": false,
+          "start_time": "17:30",
+          "frequency": "once",
+          "due_date": null
+        },
+        {
+          "title": "Outdoor time",
+          "duration_minutes": 20,
+          "priority": "medium",
+          "category": "enrichment",
+          "completed": false,
+          "start_time": "07:30",
+          "frequency": "once",
+          "due_date": null
+        }
+      ]
+    }
+  ]
+}

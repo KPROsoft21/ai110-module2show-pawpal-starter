@@ -2,8 +2,14 @@ from dataclasses import dataclass, field
 from datetime import date, timedelta
 from itertools import combinations
 from typing import Optional
+import json
 
-PRIORITY_ORDER = {"high": 3, "medium": 2, "low": 1}
+PRIORITY_ORDER  = {"high": 3, "medium": 2, "low": 1}
+PRIORITY_EMOJI  = {"high": "🔴", "medium": "🟡", "low": "🟢"}
+CATEGORY_EMOJI  = {
+    "walk": "🚶", "feeding": "🍖", "medication": "💊",
+    "grooming": "✂️", "enrichment": "🎾",
+}
 
 
 @dataclass
@@ -40,16 +46,29 @@ class Task:
         return self.priority == "high"
 
     def to_dict(self) -> dict:
-        """Return a dictionary representation of this task."""
+        """Return a display-ready dictionary with emoji indicators for priority and category."""
+        return {
+            "priority": f"{PRIORITY_EMOJI.get(self.priority, '')} {self.priority}",
+            "title": f"{CATEGORY_EMOJI.get(self.category, '')} {self.title}",
+            "duration_min": self.duration_minutes,
+            "category": self.category,
+            "start_time": self.start_time or "—",
+            "frequency": self.frequency,
+            "due_date": str(self.due_date) if self.due_date else "—",
+            "completed": "✅" if self.completed else "⬜",
+        }
+
+    def to_json_dict(self) -> dict:
+        """Return a serialisation-safe dictionary (no emoji, no sentinel strings)."""
         return {
             "title": self.title,
             "duration_minutes": self.duration_minutes,
             "priority": self.priority,
             "category": self.category,
             "completed": self.completed,
-            "start_time": self.start_time or "—",
+            "start_time": self.start_time,
             "frequency": self.frequency,
-            "due_date": str(self.due_date) if self.due_date else "—",
+            "due_date": str(self.due_date) if self.due_date else None,
         }
 
 
@@ -94,6 +113,51 @@ class Owner:
     def get_all_tasks(self) -> list[tuple[str, Task]]:
         """Return every task across all pets as (pet_name, task) pairs."""
         return [(pet.name, task) for pet in self.pets for task in pet.tasks]
+
+    def save_to_json(self, path: str = "data.json") -> None:
+        """Serialise the owner, all pets, and all tasks to a JSON file."""
+        payload = {
+            "name": self.name,
+            "available_minutes": self.available_minutes,
+            "preferences": self.preferences,
+            "pets": [
+                {
+                    "name": pet.name,
+                    "species": pet.species,
+                    "tasks": [t.to_json_dict() for t in pet.tasks],
+                }
+                for pet in self.pets
+            ],
+        }
+        with open(path, "w") as fh:
+            json.dump(payload, fh, indent=2)
+
+    @classmethod
+    def load_from_json(cls, path: str = "data.json") -> "Owner":
+        """Deserialise an Owner (with pets and tasks) from a JSON file."""
+        with open(path) as fh:
+            data = json.load(fh)
+        owner = cls(
+            name=data["name"],
+            available_minutes=data["available_minutes"],
+            preferences=data.get("preferences", {}),
+        )
+        for pet_data in data.get("pets", []):
+            pet = Pet(name=pet_data["name"], species=pet_data["species"])
+            for t in pet_data.get("tasks", []):
+                raw_date = t.get("due_date")
+                pet.add_task(Task(
+                    title=t["title"],
+                    duration_minutes=t["duration_minutes"],
+                    priority=t["priority"],
+                    category=t["category"],
+                    completed=t.get("completed", False),
+                    start_time=t.get("start_time"),
+                    frequency=t.get("frequency", "once"),
+                    due_date=date.fromisoformat(raw_date) if raw_date else None,
+                ))
+            owner.add_pet(pet)
+        return owner
 
 
 class Scheduler:
@@ -178,6 +242,39 @@ class Scheduler:
         timed = [(pn, t) for pn, t in self.scheduled_tasks if t.start_time is not None]
         return [pair for pair in combinations(timed, 2) if _overlaps(*pair)]
 
+    def find_next_slot(
+        self,
+        duration_minutes: int,
+        day_start: str = "07:00",
+        day_end: str = "21:00",
+    ) -> Optional[str]:
+        """Return the earliest free HH:MM slot that fits a task of the given duration.
+
+        Scans the gaps between already-scheduled timed tasks from day_start to
+        day_end. Returns None if no gap is large enough.
+        """
+        start = _time_to_minutes(day_start)
+        end   = _time_to_minutes(day_end)
+
+        # Collect timed tasks sorted chronologically
+        timed = sorted(
+            [(pn, t) for pn, t in self.scheduled_tasks if t.start_time],
+            key=lambda pair: _time_to_minutes(pair[1].start_time),
+        )
+
+        cursor = start
+        for _, task in timed:
+            task_start = _time_to_minutes(task.start_time)
+            if task_start - cursor >= duration_minutes:
+                return _minutes_to_time(cursor)
+            cursor = max(cursor, task_start + task.duration_minutes)
+
+        # Check the gap after the last scheduled task
+        if end - cursor >= duration_minutes:
+            return _minutes_to_time(cursor)
+
+        return None
+
     # ------------------------------------------------------------------
     # Display
     # ------------------------------------------------------------------
@@ -223,6 +320,11 @@ def _time_to_minutes(hhmm: str) -> int:
     """Convert an 'HH:MM' string to an integer count of minutes since midnight."""
     h, m = hhmm.split(":")
     return int(h) * 60 + int(m)
+
+
+def _minutes_to_time(minutes: int) -> str:
+    """Convert an integer minute-offset since midnight to an 'HH:MM' string."""
+    return f"{minutes // 60:02d}:{minutes % 60:02d}"
 
 
 def _overlaps(a: tuple, b: tuple) -> bool:

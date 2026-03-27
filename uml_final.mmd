@@ -1,0 +1,53 @@
+---
+title: PawPal+ Final Class Diagram
+---
+classDiagram
+    class Task {
+        +String title
+        +int duration_minutes
+        +String priority
+        +String category
+        +bool completed
+        +String start_time
+        +String frequency
+        +date due_date
+        +mark_complete() Optional~Task~
+        +is_high_priority() bool
+        +to_dict() dict
+    }
+
+    class Pet {
+        +String name
+        +String species
+        +List~Task~ tasks
+        +add_task(task)
+        +remove_task(title)
+        +get_tasks_by_priority() List~Task~
+    }
+
+    class Owner {
+        +String name
+        +int available_minutes
+        +dict preferences
+        +List~Pet~ pets
+        +set_availability(minutes)
+        +add_pet(pet)
+        +remove_pet(name)
+        +get_all_tasks() List~Tuple~
+    }
+
+    class Scheduler {
+        +List~Tuple~ scheduled_tasks
+        +List~Tuple~ skipped_tasks
+        +build_plan() List~Tuple~
+        +sort_by_time() List~Tuple~
+        +filter_tasks(pet_name, completed) List~Tuple~
+        +complete_task(pet_name, task_title) Optional~Task~
+        +find_conflicts() List~Tuple~
+        +explain_plan() String
+        +total_scheduled_time() int
+    }
+
+    Owner "1" --> "many" Pet : owns
+    Pet "1" *-- "many" Task : contains
+    Scheduler --> Owner : reads budget and pets from
