@@ -1,11 +1,5 @@
 # PawPal+
 
-## 📸 Demo
-
-<img width="960" height="1400" alt="demo_screenshot" src="https://github.com/user-attachments/assets/5678bdf0-bddf-4f51-bb4b-b0408f204435" />
-
-
-
 
 A Streamlit app that helps busy pet owners stay consistent with daily pet care. PawPal+ generates a prioritised daily schedule across multiple pets, detects time conflicts, and automatically reschedules recurring tasks — all explained in plain language.
 
@@ -119,3 +113,9 @@ The system uses four classes. See `uml_final.png` for the full diagram.
 | `Pet` | Owns a list of tasks; manages adding, removing, and sorting them by priority |
 | `Owner` | Holds the daily time budget and a list of pets; provides a flat view of all tasks across pets |
 | `Scheduler` | Reads from `Owner` to build, sort, filter, and explain the daily plan; detects conflicts and handles recurring completions |
+
+
+## 📸 Demo
+
+<img width="960" height="1400" alt="demo_screenshot" src="https://github.com/user-attachments/assets/5678bdf0-bddf-4f51-bb4b-b0408f204435" />
+
