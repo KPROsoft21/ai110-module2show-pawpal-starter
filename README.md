@@ -32,6 +32,30 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## Testing PawPal+
+
+Run the full test suite from the project root:
+
+```bash
+python -m pytest
+```
+
+The suite lives in `tests/test_pawpal.py` and covers 14 test cases across five areas:
+
+| Area | What is tested |
+|---|---|
+| **Task completion** | `mark_complete()` sets `completed = True` |
+| **Pet task management** | `add_task()` increments the task count |
+| **Sorting** | `sort_by_time()` returns tasks in chronological order; tasks with no `start_time` appear last |
+| **Recurrence** | Daily/weekly tasks produce a next occurrence with the correct due date; one-time tasks return `None` |
+| **Conflict detection** | Overlapping time windows are flagged; non-overlapping and untimed tasks are not |
+| **Edge cases** | Empty pet produces an empty plan; task exceeding the budget goes to `skipped_tasks`; calling `build_plan()` twice does not duplicate results |
+
+**Confidence level: ★★★★☆**
+Core scheduling logic, recurrence, sorting, and conflict detection are all verified. The main gap is the Streamlit UI layer (`app.py`), which is not covered by automated tests.
+
+---
+
 ## Smarter Scheduling
 
 The `Scheduler` class goes beyond a simple task list with four additional capabilities:

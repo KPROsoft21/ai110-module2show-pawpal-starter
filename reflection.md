@@ -64,13 +64,13 @@ The greedy approach is a reasonable tradeoff here because: pet care tasks are ra
 
 **a. What you tested**
 
-- What behaviors did you test?
-- Why were these tests important?
+The suite covers 14 cases across six areas: task completion status, pet task management, sort order correctness (including the edge case of tasks with no start time), daily and weekly recurrence (verifying the exact due date and that the next occurrence is added to the pet), conflict detection (overlapping, non-overlapping, and untimed tasks), and scheduler edge cases (empty pet, task exceeding the budget, and idempotent `build_plan()` calls).
+
+These tests matter because the scheduler's greedy logic, time arithmetic, and interval-overlap test are all easy to get subtly wrong — especially the recurring task due-date calculation and the double-call reset behaviour. Automated tests catch regressions immediately if any of that logic changes.
 
 **b. Confidence**
 
-- How confident are you that your scheduler works correctly?
-- What edge cases would you test next if you had more time?
+★★★★☆ — confident in the backend logic. The scheduling, sorting, recurrence, and conflict detection all have direct test coverage and pass cleanly. The main untested area is the Streamlit UI layer: session state persistence, form submissions, and the display of results are only verified manually in the browser. If more time were available, the next tests to add would be: removing a pet mid-session and verifying its tasks disappear from the plan, marking a weekly task complete multiple times in a row, and testing conflict detection when more than two tasks overlap simultaneously.
 
 ---
 
